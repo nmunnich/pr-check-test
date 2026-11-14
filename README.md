@@ -7,20 +7,24 @@ A minimal repo to experiment with creating check runs on a pull request via
 ## How to test
 
 1. Push this repo to GitHub (any name, e.g. `pr-check-test`).
-2. Open a PR: the `demo-change` branch has a commit ready to use as the PR head.
-   Open a PR from `demo-change` into `main`.
-3. Go to **Actions → Create PR check → Run workflow**, select the `demo-change`
-   branch (the PR head — the check is created on the commit the workflow runs
-   against, `context.sha`) and run it.
-4. Once the run finishes, look at the PR: a `docs-preview` check appears in
-   the commit checks / PR conversation, with title "Documentation preview
-   ready!" — clicking it follows `details_url` (the preview URL).
+2. Open a PR from `demo-change` into `main` (the branch already has a commit
+   ready to use as the PR head).
+3. The workflow runs automatically on `pull_request: opened` — no manual step.
+4. Look at the PR: a `docs-preview` check appears in the commit checks / PR
+   conversation, with title "Documentation preview ready!" — clicking it
+   follows `details_url` (the preview URL).
+
+You can also trigger it manually via **Actions → Create PR check → Run
+workflow**; the check is then created on the commit of the selected branch.
 
 ## Notes
 
-- The first step exports `PREVIEW_URL` via `GITHUB_ENV`; the check step reads
-  it as a plain environment variable (`process.env.PREVIEW_URL`). No workflow
-  inputs.
+- The first step exports `PREVIEW_URL` (and the PR head SHA) via `GITHUB_ENV`;
+  the check step reads them as plain environment variables. No workflow inputs.
+- `HEAD_SHA` uses `github.event.pull_request.head.sha` on PR events so the
+  check lands on the actual PR head commit (on a `pull_request` event
+  `github.sha` is the merge commit). It falls back to `github.sha` for manual
+  runs.
 - `checks: write` in the workflow `permissions` is what allows creating the
   check run.
 - The check is created directly on the head SHA of the PR, so it shows up in
