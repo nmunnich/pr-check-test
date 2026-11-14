@@ -11,3 +11,5 @@ A minimal repo to experiment with creating check runs on a pull request via
   check run.
 - This test repo uses `actions/github-script@v7` unpinned for clarity; pin it 
   if you use this in practice.
+
+DEMO CHANGE
