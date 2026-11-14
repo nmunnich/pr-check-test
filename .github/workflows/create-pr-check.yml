@@ -1,0 +1,50 @@
+name: Create PR check
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Pull request number to attach the check to
+        required: true
+      preview_url:
+        description: URL the check should link to
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+
+jobs:
+  create-check:
+    name: Create check run on PR head
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the check run
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+          PREVIEW_URL: ${{ inputs.preview_url }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: Number(process.env.PR_NUMBER),
+            });
+
+            await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: "docs-preview",
+              head_sha: pr.head.sha,
+              status: "completed",
+              conclusion: "success",
+              details_url: process.env.PREVIEW_URL,
+              output: {
+                title: "Documentation preview ready!",
+                summary: `The rendered documentation is available at ${process.env.PREVIEW_URL}`,
+              },
+            });
+
+            core.info(`Check "docs-preview" created on ${pr.head.sha} (PR #${pr.number})`);
