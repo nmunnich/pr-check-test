@@ -8,11 +8,11 @@ on:
 
 permissions:
   contents: read
-  checks: write
+  statuses: write
 
 jobs:
-  create-check:
-    name: Create check run on PR head
+  create-status:
+    name: Create commit status on PR head
     runs-on: ubuntu-latest
     steps:
       - name: Set the preview URL and PR head SHA
@@ -20,22 +20,18 @@ jobs:
           echo "PREVIEW_URL=https://example.com/doc/" >> "$GITHUB_ENV"
           echo "HEAD_SHA=${{ github.event.pull_request.head.sha || github.sha }}" >> "$GITHUB_ENV"
 
-      - name: Create the check run
+      - name: Create the commit status
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.checks.create({
+            await github.rest.repos.createStatus({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              name: "docs-preview",
-              head_sha: process.env.HEAD_SHA,
-              status: "completed",
-              conclusion: "success",
-              details_url: process.env.PREVIEW_URL,
-              output: {
-                title: "Documentation preview ready!",
-                summary: `The rendered documentation is available at ${process.env.PREVIEW_URL}`,
-              },
+              sha: process.env.HEAD_SHA,
+              state: "success",
+              target_url: process.env.PREVIEW_URL,
+              context: "docs-preview",
+              description: "Documentation preview ready!",
             });
 
-            core.info(`Check "docs-preview" created on ${process.env.HEAD_SHA}`);
+            core.info(`Status "docs-preview" created on ${process.env.HEAD_SHA}`);
